@@ -1,0 +1,4 @@
+!/examples/main.tf
+/examples/*
+bin
+.idea
