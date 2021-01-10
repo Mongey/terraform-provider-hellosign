@@ -1,4 +1,4 @@
-!/examples/main.tf
+!examples/provider/provider.tf
 /examples/*
 bin
 .idea
