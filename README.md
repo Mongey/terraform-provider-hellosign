@@ -1,6 +1,6 @@
-# `terraform-plugin-hellosign`
+# `terraform-provider-hellosign`
 
-A [Terraform][1] plugin for managing [Hellosign][2] resources.
+A [Terraform][1] provider for managing [Hellosign][2] resources.
 
 ## Installation
 
