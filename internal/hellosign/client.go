@@ -12,10 +12,9 @@ type Config struct {
 }
 
 type Client struct {
-	once    sync.Once
-	initErr error
-	config  *Config
-	client  *hs.APIAppAPI
+	once   sync.Once
+	config *Config
+	client *hs.APIAppAPI
 }
 
 func NewClient(config *Config) *Client {
