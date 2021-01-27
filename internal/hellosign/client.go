@@ -2,6 +2,7 @@ package hellosign
 
 import (
 	"fmt"
+	"sync"
 
 	hs "github.com/StefanNyman/hellosign"
 )
@@ -11,8 +12,10 @@ type Config struct {
 }
 
 type Client struct {
-	config *Config
-	client *hs.APIAppAPI
+	once    sync.Once
+	initErr error
+	config  *Config
+	client  *hs.APIAppAPI
 }
 
 func NewClient(config *Config) *Client {
@@ -22,19 +25,46 @@ func NewClient(config *Config) *Client {
 	}
 }
 
+func (c *Client) init() error {
+	var err error
+
+	c.once.Do(func() {
+		c.client = hs.NewAPIAppAPI(c.config.APIKey)
+	})
+
+	return err
+}
+
 func (c *Client) App(clientID string) (*hs.APIApp, error) {
+	err := c.init()
+	if err != nil {
+		return nil, err
+	}
 	return c.client.Get(clientID)
 }
 
 func (c *Client) Create(params hs.APIAppCreateParms) (*hs.APIApp, error) {
+	err := c.init()
+	if err != nil {
+		return nil, err
+	}
 	return c.client.Create(params)
 }
 
-func (c *Client) UpdateApp(clientID string) (interface{}, error) {
-	return nil, nil
+func (c *Client) UpdateApp(clientID string, params hs.APIAppUpdateParms) (*hs.APIApp, error) {
+	err := c.init()
+	if err != nil {
+		return nil, err
+	}
+	return c.client.Update(clientID, params)
 }
 
 func (c *Client) DeleteApp(clientID string) error {
+	err := c.init()
+	if err != nil {
+		return err
+	}
+
 	deleted, err := c.client.Delete(clientID)
 	if err != nil {
 		return err

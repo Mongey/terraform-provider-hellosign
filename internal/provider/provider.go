@@ -1,4 +1,4 @@
-package ccloud
+package provider
 
 import (
 	"context"

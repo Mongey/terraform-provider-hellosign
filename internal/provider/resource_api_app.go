@@ -1,4 +1,4 @@
-package ccloud
+package provider
 
 import (
 	"context"
@@ -111,10 +111,22 @@ func apiAppResource() *schema.Resource {
 }
 
 func apiAppCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	//c := meta.(*hellosign.Client)
-	//var diag diag.Diagnostics
+	c := meta.(*hellosign.Client)
 
-	return nil //diag.FromErr(err)
+	oauth := &hs.APIAppCreateOauth{}
+	params := hs.APIAppCreateParms{
+		Name:                 d.Get("name").(string),
+		Domain:               d.Get("domain").(string),
+		CallbackURL:          d.Get("callback_url").(string),
+		OAuth:                oauth,
+		WhiteLabelingOptions: d.Get("white_labeling_options").(string),
+	}
+	_, err := c.Create(params)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	return nil
 }
 
 func apiAppRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
@@ -126,36 +138,79 @@ func apiAppRead(ctx context.Context, d *schema.ResourceData, meta interface{}) d
 		return diag.FromErr(err)
 	}
 
-	d.Set("client_id", id)
-	d.Set("name", app.Name)
-	d.Set("callback_url", app.CallbackURL)
-	d.Set("domain", app.Domain)
-	d.Set("is_approved", app.IsApproved)
+	err = d.Set("client_id", id)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	err = d.Set("name", app.Name)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	err = d.Set("callback_url", app.CallbackURL)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	err = d.Set("domain", app.Domain)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	err = d.Set("is_approved", app.IsApproved)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
 	log.Printf("[INFO] oauth: %v", app.Oauth)
 	log.Printf("[INFO] app: %v", app)
 
 	if app.Oauth != nil {
-		d.Set("oauth", []interface{}{flattenOuathBlock(app)})
+		err = d.Set("oauth", []interface{}{flattenOauthBlock(app)})
+		if err != nil {
+			return diag.FromErr(err)
+		}
 	} else {
-		d.Set("oauth", []interface{}{})
+		err = d.Set("oauth", []interface{}{})
+		if err != nil {
+			return diag.FromErr(err)
+		}
 	}
-	d.Set("owner_account", []interface{}{flatternOwnerAccount(app)})
+	err = d.Set("owner_account", []interface{}{flatternOwnerAccount(app)})
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
 	return nil
 }
 
 func apiAppUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	//c := meta.(*hellosign.Client)
+	c := meta.(*hellosign.Client)
+	//oauth := &[]hs.APIAppUpdateOauth{}
+	params := hs.APIAppUpdateParms{
+		Name:        d.Get("name").(string),
+		Domain:      d.Get("domain").(string),
+		CallbackURL: d.Get("callback_url").(string),
+		//OAuth:       oauth,
+	}
+	_, err := c.UpdateApp(d.Id(), params)
 
-	//return diag.FromErr(err)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 	return nil
 }
 
 func apiAppDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	c := meta.(*hellosign.Client)
-	err := c.DeleteApp(d.Id())
 
-	return diag.FromErr(err)
+	err := c.DeleteApp(d.Id())
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	return nil
 }
 
 func flatternOwnerAccount(app *hs.APIApp) interface{} {
@@ -165,7 +220,7 @@ func flatternOwnerAccount(app *hs.APIApp) interface{} {
 	}
 }
 
-func flattenOuathBlock(app *hs.APIApp) interface{} {
+func flattenOauthBlock(app *hs.APIApp) interface{} {
 	return map[string]interface{}{
 		"callback_url": app.Oauth.CallbackURL,
 		"scopes":       app.Oauth.Scopes,
