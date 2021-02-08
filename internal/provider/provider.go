@@ -10,7 +10,7 @@ import (
 )
 
 func Provider() *schema.Provider {
-	log.Printf("[INFO] Creating Provider")
+	log.Printf("[INFO] Creating HelloSign Provider")
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
 			"api_key": {
@@ -28,7 +28,7 @@ func Provider() *schema.Provider {
 }
 
 func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
-	log.Printf("[INFO] Initializing HelloSign client")
+	log.Printf("[INFO] Configuring HelloSign client")
 	apiKey := d.Get("api_key").(string)
 	cfg := &hellosign.Config{APIKey: apiKey}
 	c := hellosign.NewClient(cfg)

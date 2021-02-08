@@ -113,19 +113,21 @@ func apiAppResource() *schema.Resource {
 func apiAppCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	c := meta.(*hellosign.Client)
 
-	oauth := &hs.APIAppCreateOauth{}
+	//oauth := &hs.APIAppCreateOauth{}
 	params := hs.APIAppCreateParms{
-		Name:                 d.Get("name").(string),
-		Domain:               d.Get("domain").(string),
-		CallbackURL:          d.Get("callback_url").(string),
-		OAuth:                oauth,
-		WhiteLabelingOptions: d.Get("white_labeling_options").(string),
+		Name:        d.Get("name").(string),
+		Domain:      d.Get("domain").(string),
+		CallbackURL: d.Get("callback_url").(string),
+		//OAuth:       oauth,
+		//WhiteLabelingOptions: d.Get("white_labeling_options").(string),
 	}
-	_, err := c.Create(params)
+	app, err := c.Create(params)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
+	d.SetId(app.ClientID)
+	log.Printf("Created app %v", app)
 	return nil
 }
 
